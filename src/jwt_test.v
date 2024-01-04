@@ -14,4 +14,5 @@ fn test_jwt() {
 	// Verify token
 	verified := token.verify(key)
 	assert verified == true
+	assert token.expired() == false
 }

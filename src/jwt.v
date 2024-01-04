@@ -1,9 +1,10 @@
 module jwt
 
 import encoding.base64
-import json
+import x.json2 as json
 import crypto.hmac
 import crypto.sha256
+import time
 
 pub struct Token {
 	header string
@@ -12,8 +13,8 @@ pub struct Token {
 }
 
 pub fn Token.new(payload Payload, secret string) Token {
-	header := base64.url_encode(json.encode(Header{}).bytes())
-	payload_string := base64.url_encode(json.encode(payload).bytes())
+	header := base64.url_encode(json.encode[Header](Header{}).bytes())
+	payload_string := base64.url_encode(json.encode[Payload](payload).bytes())
 	signature := base64.url_encode(hmac.new(
 		secret.bytes(),
 		"${header}.${payload_string}".bytes(),
@@ -46,4 +47,24 @@ pub fn (t Token) verify(secret string) bool {
 	).bytestr().bytes())
 
 	return parts[2] == expected_signature // signature == expected_signature
+}
+
+pub fn (t Token) payload() !Payload {
+	return json.decode[Payload](base64.url_decode(t.payload).str())!
+}
+
+pub fn (t Token) expired() bool {
+	payload := t.payload() or { return false }
+
+	if payload.exp == none {
+		return false
+	}
+
+	exp := payload.exp
+
+	if exp < time.now() {
+		return true
+	} else {
+		return false
+	}
 }
