@@ -6,13 +6,19 @@ A simple, self-contained module for making and verifying JWTs using HMAC SHA256.
 import jwt
 import json
 
-key := "secret-key"
+const secret := "secret-key"
 
+// Create a new token
 payload := Payload{
     sub: "1234567890",
     ext: json.encode(/* some struct */)
 }
-token := Token.new(payload, key)
+token := Token.new(payload, secret)
+respond_with(token.to_string())
 
-verified := token.verify(key)
+// Validate a token from the web
+token := Token.from_string(/* receive a token from the web */)
+if token.valid(secret) {
+    // do stuff
+}
 ```
