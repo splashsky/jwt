@@ -32,8 +32,8 @@ pub fn (t Token) to_string() string {
 	return t.header + "." + t.payload + "." + t.signature
 }
 
-pub fn verify(token string, secret string) bool {
-	parts := token.split(".")
+pub fn (t Token) verify(secret string) bool {
+	parts := t.to_string().split(".")
 	if parts.len != 3 {
 		return false
 	}

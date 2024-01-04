@@ -12,6 +12,6 @@ fn test_jwt() {
 	token := Token.new(payload, key)
 
 	// Verify token
-	verified := verify(token.to_string(), key)
+	verified := token.verify(key)
 	assert verified == true
 }
