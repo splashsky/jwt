@@ -28,7 +28,7 @@ fn test_expired() {
 	assert token.valid(secret) == false
 }
 
-fn test_from_string() {
+fn test_from_str() {
 	payload := Payload{
 		sub: "1234567890",
 		ext: json.encode(claims)
@@ -39,7 +39,7 @@ fn test_from_string() {
 	}
 
 	token := Token.new(payload, secret)
-	token2 := Token.from_string(token.to_string())!
+	token2 := Token.from_str(token.str())!
 	token3 := Token.new(payload2, secret)
 
 	assert token2 == token

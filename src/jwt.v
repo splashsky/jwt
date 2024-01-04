@@ -29,7 +29,7 @@ pub fn Token.new(payload Payload, secret string) Token {
 	}
 }
 
-pub fn Token.from_string(token string) !Token {
+pub fn Token.from_str(token string) !Token {
 	parts := token.split(".")
 	if parts.len != 3 {
 		return error("Invalid token")
@@ -42,7 +42,7 @@ pub fn Token.from_string(token string) !Token {
 	}
 }
 
-pub fn (t Token) to_string() string {
+pub fn (t Token) str() string {
 	return t.header + "." + t.payload + "." + t.signature
 }
 
@@ -51,7 +51,7 @@ pub fn (t Token) valid(secret string) bool {
 		return false
 	}
 
-	parts := t.to_string().split(".")
+	parts := t.str().split(".")
 	if parts.len != 3 {
 		return false
 	}
@@ -71,11 +71,5 @@ pub fn (t Token) payload() !Payload {
 }
 
 pub fn (t Token) expired() bool {
-	payload := t.payload() or { return false }
-
-	if exp := payload.exp {
-		return exp < time.now()
-	} else {
-		return false
-	}
+	return t.payload() or { return false }.exp or { return false } < time.now()
 }
