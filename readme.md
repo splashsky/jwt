@@ -14,10 +14,10 @@ payload := Payload{
     ext: json.encode(/* some struct */)
 }
 token := Token.new(payload, secret)
-respond_with(token.to_string())
+respond_with(token.str())
 
 // Validate a token from the web
-token := Token.from_string(/* receive a token from the web */)
+token := Token.from_str(/* receive a token from the web */)
 if token.valid(secret) {
     // do stuff
 }
