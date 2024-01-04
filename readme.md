@@ -8,10 +8,9 @@ import json
 
 key := "secret-key"
 
-claims := json.encode(/* some struct */)
 payload := Payload{
     sub: "1234567890",
-    ext: json.encode(claims)
+    ext: json.encode(/* some struct */)
 }
 token := Token.new(payload, key)
 
