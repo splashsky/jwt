@@ -29,11 +29,28 @@ pub fn Token.new(payload Payload, secret string) Token {
 	}
 }
 
+pub fn Token.from_string(token string) !Token {
+	parts := token.split(".")
+	if parts.len != 3 {
+		return error("Invalid token")
+	}
+
+	return Token{
+		header: parts[0],
+		payload: parts[1],
+		signature: parts[2],
+	}
+}
+
 pub fn (t Token) to_string() string {
 	return t.header + "." + t.payload + "." + t.signature
 }
 
-pub fn (t Token) verify(secret string) bool {
+pub fn (t Token) valid(secret string) bool {
+	if t.expired() {
+		return false
+	}
+
 	parts := t.to_string().split(".")
 	if parts.len != 3 {
 		return false
@@ -50,20 +67,14 @@ pub fn (t Token) verify(secret string) bool {
 }
 
 pub fn (t Token) payload() !Payload {
-	return json.decode[Payload](base64.url_decode(t.payload).str())!
+	return json.decode[Payload](base64.url_decode_str(t.payload))!
 }
 
 pub fn (t Token) expired() bool {
 	payload := t.payload() or { return false }
 
-	if payload.exp == none {
-		return false
-	}
-
-	exp := payload.exp
-
-	if exp < time.now() {
-		return true
+	if exp := payload.exp {
+		return exp < time.now()
 	} else {
 		return false
 	}
