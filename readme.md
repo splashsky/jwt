@@ -9,15 +9,15 @@ import json
 const secret := "secret-key"
 
 // Create a new token
-payload := Payload{
+payload := jwt.Payload{
     sub: "1234567890",
     ext: json.encode(/* some struct */)
 }
-token := Token.new(payload, secret)
+token := jwt.Token.new(payload, secret)
 respond_with(token.str())
 
 // Validate a token from the web
-token := Token.from_str(/* receive a token from the web */)
+token := jwt.Token.from_str(/* receive a token from the web */)
 if token.valid(secret) {
     // do stuff
 }
