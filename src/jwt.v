@@ -6,70 +6,61 @@ import crypto.hmac
 import crypto.sha256
 import time
 
-pub struct Token {
-	header string
-	payload string
+pub struct Token[T] {
+	header    string
 	signature string
+pub:
+	payload Payload[T]
 }
 
-pub fn Token.new(payload Payload, secret string) Token {
+pub fn Token.new[T](payload Payload[T], secret string) Token[T] {
 	header := base64.url_encode(json.encode[Header](Header{}).bytes())
-	payload_string := base64.url_encode(json.encode[Payload](payload).bytes())
-	signature := base64.url_encode(hmac.new(
-		secret.bytes(),
-		"${header}.${payload_string}".bytes(),
-		sha256.sum,
-		sha256.block_size
-	).bytestr().bytes())
+	payload_string := base64.url_encode(json.encode(payload).bytes())
 
-	return Token{
-		header: header,
-		payload: payload_string,
-		signature: signature,
+	signature := base64.url_encode(hmac.new(secret.bytes(), '${header}.${payload_string}'.bytes(),
+		sha256.sum, sha256.block_size).bytestr().bytes())
+
+	return Token[T]{
+		header: header
+		payload: payload
+		signature: signature
 	}
 }
 
-pub fn Token.from_str(token string) !Token {
-	parts := token.split(".")
+pub fn from_str[T](token string) !Token[T] {
+	parts := token.split('.')
 	if parts.len != 3 {
-		return error("Invalid token")
+		return error('Invalid token')
 	}
 
-	return Token{
-		header: parts[0],
-		payload: parts[1],
-		signature: parts[2],
+	return Token[T]{
+		header: parts[0]
+		payload: json.decode[Payload[T]](base64.url_decode_str(parts[1]))!
+		signature: parts[2]
 	}
 }
 
-pub fn (t Token) str() string {
-	return t.header + "." + t.payload + "." + t.signature
+pub fn (t Token[T]) str() string {
+	payload := base64.url_encode(json.encode(t.payload).bytes())
+	return t.header + '.' + payload + '.' + t.signature
 }
 
-pub fn (t Token) valid(secret string) bool {
+pub fn (t Token[T]) valid(secret string) bool {
 	if t.expired() {
 		return false
 	}
 
-	parts := t.str().split(".")
+	parts := t.str().split('.')
 	if parts.len != 3 {
 		return false
 	}
 
-	expected_signature := base64.url_encode(hmac.new(
-		secret.bytes(),
-		"${parts[0]}.${parts[1]}".bytes(), // header + payload
-		sha256.sum,
-		sha256.block_size
-	).bytestr().bytes())
+	expected_signature := base64.url_encode(hmac.new(secret.bytes(), '${parts[0]}.${parts[1]}'.bytes(), // header + payload
+	 sha256.sum, sha256.block_size).bytestr().bytes())
 
 	return parts[2] == expected_signature // signature == expected_signature
 }
 
-pub fn (t Token) payload() !Payload {
-	return json.decode[Payload](base64.url_decode_str(t.payload))!
-}
-
-pub fn (t Token) expired() bool {
-	return t.payload() or { return false }.exp or { return false } < time.now()
+pub fn (t Token[T]) expired() bool {
+	return t.payload.exp or { return false } < time.now()
 }
