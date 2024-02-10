@@ -9,5 +9,5 @@ pub struct Payload[T] {
 	exp ?time.Time @[omitempty]
 	iat ?time.Time @[omitempty]
 pub:
-	ext ?T @[omitempty]
+	ext T @[omitempty]
 }
