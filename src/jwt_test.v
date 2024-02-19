@@ -33,7 +33,7 @@ fn test_expired() {
 	payload := Payload[map[string]string]{
 		sub: '1234567890'
 		ext: jwt.claims
-		exp: time.parse('2019-01-01 00:00:00') or { panic(err) }
+		exp: '2019-01-01 00:00:00'
 	}
 	token := Token.new(payload, jwt.secret)
 
@@ -45,7 +45,7 @@ fn test_no_expired() {
 	payload := Payload[map[string]string]{
 		sub: '1234567890'
 		ext: jwt.claims
-		exp: time.now().add_seconds(10)
+		exp: time.now().add_seconds(10).str()
 	}
 	token := Token.new(payload, jwt.secret)
 
@@ -64,10 +64,9 @@ fn test_from_str() {
 	}
 
 	token := Token.new(payload, jwt.secret)
-	token2 := from_str[map[string]string](token.str())!
+	token2 := from_str[map[string]string](token.str())! //Não está funcionando
 	token3 := Token.new(payload2, jwt.secret)
 
-	// error compiler
-	// assert token2 == token
-	// assert token2 != token3
+	assert token2 == token
+	assert token2 != token3
 }

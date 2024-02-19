@@ -1,7 +1,7 @@
 module jwt
 
 import encoding.base64
-import x.json2 as json
+import json
 import crypto.hmac
 import crypto.sha256
 import time
@@ -14,7 +14,7 @@ pub:
 }
 
 pub fn Token.new[T](payload Payload[T], secret string) Token[T] {
-	header := base64.url_encode(json.encode[Header](Header{}).bytes())
+	header := base64.url_encode(json.encode(Header{}).bytes())
 	payload_string := base64.url_encode(json.encode(payload).bytes())
 
 	signature := base64.url_encode(hmac.new(secret.bytes(), '${header}.${payload_string}'.bytes(),
@@ -35,7 +35,7 @@ pub fn from_str[T](token string) !Token[T] {
 
 	return Token[T]{
 		header: parts[0]
-		payload: json.decode[Payload[T]](base64.url_decode_str(parts[1]))!
+		payload: json.decode(Payload[T], base64.url_decode_str(parts[1]))!
 		signature: parts[2]
 	}
 }
@@ -62,5 +62,5 @@ pub fn (t Token[T]) valid(secret string) bool {
 }
 
 pub fn (t Token[T]) expired() bool {
-	return t.payload.exp or { return false } < time.now()
+	return t.payload.exp.time() or { return false } < time.now()
 }
